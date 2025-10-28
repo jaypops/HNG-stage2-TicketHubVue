@@ -1,65 +1,60 @@
 <template>
   <div class="min-h-screen bg-background">
     <!-- Header -->
-
-
-     <header className="border-b border-border bg-card">
-      <div className="max-w-7xl mx-auto px-4 py-4 md:flex items-center justify-between hidden ">
+    <header class="border-b border-border bg-card">
+      <!-- Desktop Header -->
+      <div class="max-w-7xl mx-auto px-4 py-4 md:flex items-center justify-between hidden">
         <div>
-          <h2 className="text-xl font-bold text-foreground">TicketHub</h2>
+          <h2 class="text-xl font-bold text-foreground">TicketHub</h2>
         </div>
-        <div className="flex items-center gap-4">
-          {user && (
-            <span className="text-sm text-muted-foreground">
-              Welcome,{{ user?.name }}
-            </span>
-          )}
-          <Button class="bg-[#111] text-[#fff]" size="sm" onClick={onLogout}>
+        <div class="flex items-center gap-4">
+          <span v-if="user" class="text-sm text-muted-foreground">
+            Welcome, {{ user.name }}
+          </span>
+          <Button class="bg-[#111] text-[#fff]" size="sm" @click="handleLogout">
             Logout
           </Button>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between md:hidden">
+
+      <!-- Mobile Header -->
+      <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between md:hidden">
         <div>
-          <h2 className="text-xl font-bold text-foreground">TicketHub</h2>
-          {user && (
-            <span className="text-sm text-muted-foreground">
-              Welcome, {{ user?.name }}
-            </span>
-          )}
+          <h2 class="text-xl font-bold text-foreground">TicketHub</h2>
+          <span v-if="user" class="text-sm text-muted-foreground">
+            Welcome, {{ user.name }}
+          </span>
         </div>
-        <div className="flex items-center gap-4">
-          <Button class="bg-[#111] text-[#fff]" size="sm" onClick={onLogout}>
-            Logout
-          </Button>
-        </div>
+        <Button class="bg-[#111] text-[#fff]" size="sm" @click="handleLogout">
+          Logout
+        </Button>
       </div>
     </header>
 
+    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <Card className="p-6">
-        <div className="text-sm font-medium text-muted-foreground mb-2">Total Tickets</div>
-        <div className="text-3xl font-bold text-foreground">{{ stats.total }}</div>
-      </Card>
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+        <Card class="p-6">
+          <div class="text-sm font-medium text-muted-foreground mb-2">Total Tickets</div>
+          <div class="text-3xl font-bold text-foreground">{{ stats.total }}</div>
+        </Card>
 
-      <Card className="p-6">
-        <div className="text-sm font-medium text-muted-foreground mb-2">Open</div>
-        <div className="text-3xl font-bold text-blue-600">{{ stats.open }}</div>
-      </Card>
+        <Card class="p-6">
+          <div class="text-sm font-medium text-muted-foreground mb-2">Open</div>
+          <div class="text-3xl font-bold text-blue-600">{{ stats.open }}</div>
+        </Card>
 
-      <Card className="p-6">
-        <div className="text-sm font-medium text-muted-foreground mb-2">In Progress</div>
-        <div className="text-3xl font-bold text-yellow-600">{{ stats.inProgress }}</div>
-      </Card>
+        <Card class="p-6">
+          <div class="text-sm font-medium text-muted-foreground mb-2">In Progress</div>
+          <div class="text-3xl font-bold text-yellow-600">{{ stats.inProgress }}</div>
+        </Card>
 
-      <Card className="p-6">
-        <div className="text-sm font-medium text-muted-foreground mb-2">Closed</div>
-        <div className="text-3xl font-bold text-green-600">{{ stats.closed }}</div>
-      </Card>
-    </div>
-
-
+        <Card class="p-6 ">
+          <div class="text-sm font-medium text-muted-foreground mb-2">Closed</div>
+          <div class="text-3xl font-bold text-green-600">{{ stats.closed }}</div>
+        </Card>
+      </div>
 
       <!-- Recent Tickets -->
       <div>
@@ -132,17 +127,13 @@ const loadTickets = () => {
   stats.value = getTicketStats()
 }
 
-const recentTickets = computed(() => {
-  return tickets.value.slice(0, 5)
-})
+const recentTickets = computed(() => tickets.value.slice(0, 5))
 
-const formatStatus = (status: string) => {
-  return status.replace('_', ' ').charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')
-}
+const formatStatus = (status: string) =>
+  status.replace('_', ' ').charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')
 
-const formatPriority = (priority: string) => {
-  return priority.charAt(0).toUpperCase() + priority.slice(1)
-}
+const formatPriority = (priority: string) =>
+  priority.charAt(0).toUpperCase() + priority.slice(1)
 
 const getStatusVariant = (status: string) => {
   const variants: Record<string, string> = {
