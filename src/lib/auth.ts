@@ -27,11 +27,12 @@ export const login = (email: string, password: string): User => {
   const user: User = {
     id: Math.random().toString(36).substr(2, 9),
     email,
-    name: email.split("@")[0],
+    name: email.split("@")[0] || email, // ✅ Fixed line
   }
   setUser(user)
   return user
 }
+
 
 export const signup = (email: string, password: string, name: string): User => {
   // Mock signup - in production, this would call an API

@@ -54,12 +54,13 @@ export const updateTicket = (
   const index = tickets.findIndex((t) => t.id === id)
   if (index === -1) return null
 
-  const updatedTicket: Ticket = {
+  // Explicitly ensure type is Ticket
+  const updatedTicket = {
     ...tickets[index],
     ...updates,
     updatedAt: new Date().toISOString(),
-  }
-  
+  } as Ticket;
+
   tickets[index] = updatedTicket
   saveTickets(tickets)
   return updatedTicket
