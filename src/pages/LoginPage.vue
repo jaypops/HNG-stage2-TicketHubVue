@@ -3,7 +3,7 @@
     class="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-6"
   >
     <Card class="w-full max-w-md">
-      <div class="mb-8">
+      <div class="mb-8 text-center">
         <h1 class="text-3xl font-bold text-foreground mb-2">Welcome Back</h1>
         <p class="text-[#737373]">Sign in to your account to continue</p>
       </div>
@@ -16,6 +16,7 @@
             type="email"
             placeholder="you@example.com"
             @blur="validateEmailField"
+            @input="clearError('email')"
           />
           <p v-if="errors.email" class="text-red-500 text-sm mt-1">{{ errors.email }}</p>
         </div>
@@ -27,13 +28,18 @@
             type="password"
             placeholder="••••••••"
             @blur="validatePasswordField"
+            @input="clearError('password')"
           />
           <p v-if="errors.password" class="text-red-500 text-sm mt-1">{{ errors.password }}</p>
         </div>
 
-        <Button variant="primary" size="lg" class="w-full bg-primary text-background" :disabled="isLoading" >
+        <button
+          type="submit"
+          class="w-full bg-black text-white py-2 rounded-md font-medium hover:bg-black/90 disabled:opacity-50 disabled:pointer-events-none transition-all"
+          :disabled="isLoading"
+        >
           {{ isLoading ? 'Signing in...' : 'Sign In' }}
-        </Button>
+        </button>
       </form>
 
       <div class="mt-6 text-center">
@@ -52,8 +58,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '../lib/auth'
-import { validateEmail, validatePassword } from '../lib/validation'
-import Button from '../composables/Button.vue'
+import { getEmailError, getPasswordError } from '../lib/validation'
 import Card from '../composables/Card.vue'
 import Input from '../composables/Input.vue'
 
@@ -67,24 +72,16 @@ const errors = ref({
   password: '',
 })
 
+const clearError = (field: keyof typeof errors.value) => {
+  errors.value[field] = ''
+}
+
 const validateEmailField = () => {
-  if (!email.value) {
-    errors.value.email = 'Email is required'
-  } else if (!validateEmail(email.value)) {
-    errors.value.email = 'Please enter a valid email'
-  } else {
-    errors.value.email = ''
-  }
+  errors.value.email = getEmailError(email.value)
 }
 
 const validatePasswordField = () => {
-  if (!password.value) {
-    errors.value.password = 'Password is required'
-  } else if (!validatePassword(password.value)) {
-    errors.value.password = 'Password must be at least 6 characters'
-  } else {
-    errors.value.password = ''
-  }
+  errors.value.password = getPasswordError(password.value)
 }
 
 const handleLogin = async () => {
@@ -104,5 +101,3 @@ const handleLogin = async () => {
   }
 }
 </script>
-
-<style scoped></style>
