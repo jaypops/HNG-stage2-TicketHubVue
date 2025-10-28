@@ -54,13 +54,15 @@ export const updateTicket = (
   const index = tickets.findIndex((t) => t.id === id)
   if (index === -1) return null
 
-  tickets[index] = {
+  const updatedTicket = {
     ...tickets[index],
     ...updates,
     updatedAt: new Date().toISOString(),
   }
+  
+  tickets[index] = updatedTicket
   saveTickets(tickets)
-  return tickets[index]
+  return updatedTicket
 }
 
 export const deleteTicket = (id: string): boolean => {
@@ -69,6 +71,12 @@ export const deleteTicket = (id: string): boolean => {
   if (filteredTickets.length === tickets.length) return false
   saveTickets(filteredTickets)
   return true
+}
+
+export const getTicketById = (id: string): Ticket | null => {
+  const tickets = getTickets()
+  const ticket = tickets.find((t) => t.id === id)
+  return ticket ?? null // Fix: Convert undefined to null
 }
 
 export const getTicketStats = (): TicketStats => {
