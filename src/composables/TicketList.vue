@@ -1,13 +1,16 @@
 <template>
   <div class="space-y-3">
-    <!-- No tickets -->
     <Card v-if="tickets.length === 0" class="p-8 text-center">
       <p class="text-muted-foreground mb-4">No tickets found</p>
       <p class="text-sm text-muted-foreground">Create a new ticket to get started</p>
     </Card>
 
-    <!-- Tickets List -->
-    <Card v-else v-for="ticket in tickets" :key="ticket.id" class="p-4">
+    <Card
+      v-else
+      v-for="ticket in tickets"
+      :key="ticket.id"
+      class="p-4"
+    >
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1">
           <h3 class="font-semibold text-foreground mb-1">
@@ -25,6 +28,7 @@
             </Badge>
           </div>
         </div>
+
         <div class="flex gap-2">
           <Button variant="outline" size="sm" @click="$emit('edit', ticket)">Edit</Button>
           <Button
@@ -38,7 +42,6 @@
       </div>
     </Card>
 
-    <!-- Manual Delete Confirmation Popup -->
     <div
       v-if="confirmPopup.visible"
       class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
@@ -58,8 +61,9 @@
           <Button
             class="bg-red-500 hover:bg-red-400 text-white"
             @click="confirmDelete"
+            :disabled="isDeleting"
           >
-            Delete
+            {{ isDeleting ? 'Deleting...' : 'Delete' }}
           </Button>
         </div>
       </div>
@@ -68,7 +72,7 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import { deleteTicket } from '../lib/tickets'
 import { useToast } from './useToast'
 import Card from './Card.vue'
@@ -84,49 +88,42 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['edit', 'delete'])
+const { showToast } = useToast()
 
-const { toast } = useToast()
-
-// Popup state
 const confirmPopup = reactive({
   visible: false,
   ticket: null
 })
+const isDeleting = ref(false)
 
-// Show popup
 const showConfirmPopup = (ticket) => {
   confirmPopup.visible = true
   confirmPopup.ticket = ticket
 }
 
-// Close popup
 const closePopup = () => {
   confirmPopup.visible = false
   confirmPopup.ticket = null
+  isDeleting.value = false
 }
 
-// Confirm delete
-const confirmDelete = () => {
+const confirmDelete = async () => {
   const ticket = confirmPopup.ticket
   if (!ticket) return
 
-  if (deleteTicket(ticket.id)) {
-    toast({
-      title: 'Success',
-      description: `"${ticket.title}" deleted successfully.`,
-    })
+  try {
+    isDeleting.value = true
+    await deleteTicket(ticket.id)
+    showToast('Ticket deleted successfully 🎉')
     emit('delete')
-  } else {
-    toast({
-      title: 'Error',
-      description: 'Failed to delete ticket.',
-    })
+  } catch (error) {
+    showToast('Failed to delete ticket. Please try again.')
+  } finally {
+    isDeleting.value = false
+    closePopup()
   }
-
-  closePopup()
 }
 
-// Helpers
 const getStatusColor = (status) => {
   switch (status) {
     case 'open':

@@ -4,6 +4,7 @@
       <h2 class="text-xl font-bold text-foreground mb-4">Create New Ticket</h2>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
+        <!-- Title -->
         <div>
           <label for="title" class="block text-sm font-medium text-foreground mb-2"> Title </label>
           <Input
@@ -17,6 +18,7 @@
           <p v-if="errors.title" class="text-sm text-destructive mt-1">{{ errors.title }}</p>
         </div>
 
+        <!-- Description -->
         <div>
           <label for="description" class="block text-sm font-medium text-foreground mb-2">
             Description
@@ -37,14 +39,12 @@
           </p>
         </div>
 
+        <!-- Status & Priority -->
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label for="status" class="block text-sm font-medium text-foreground mb-2">
-              Status
-            </label>
+            <label for="status" class="block text-sm font-medium text-foreground mb-2">Status</label>
             <select
               id="status"
-              name="status"
               v-model="formData.status"
               :disabled="isLoading"
               class="w-full px-3 py-2 border border-input rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -61,7 +61,6 @@
             </label>
             <select
               id="priority"
-              name="priority"
               v-model="formData.priority"
               :disabled="isLoading"
               class="w-full px-3 py-2 border border-input rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -73,6 +72,7 @@
           </div>
         </div>
 
+        <!-- Buttons -->
         <div class="flex gap-2 pt-4">
           <Button
             type="button"
@@ -92,7 +92,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { createTicket } from '../lib/tickets'
 import { ticketSchema } from '../lib/validation'
@@ -100,23 +100,17 @@ import { useToast } from './useToast'
 import Button from './Button.vue'
 import Input from './Input.vue'
 
-const { toast } = useToast()
+const { showToast } = useToast()
 
 const props = defineProps({
-  open: {
-    type: Boolean,
-    required: true,
-  },
-  onTicketCreated: {
-    type: Function,
-    required: true,
-  },
+  open: { type: Boolean, required: true },
+  onTicketCreated: { type: Function, required: true },
 })
 
 const emit = defineEmits(['update:open'])
 
 const isLoading = ref(false)
-const errors = ref({})
+const errors = ref<Record<string, string>>({})
 const formData = ref({
   title: '',
   description: '',
@@ -124,24 +118,15 @@ const formData = ref({
   priority: 'medium',
 })
 
-// Clear errors when modal opens/closes or when fields change
 watch(
   () => props.open,
   (isOpen) => {
-    if (isOpen) {
-      errors.value = {}
-    }
+    if (isOpen) errors.value = {}
   },
 )
 
 const handleCancel = () => {
-  // Reset form
-  formData.value = {
-    title: '',
-    description: '',
-    status: 'open',
-    priority: 'medium',
-  }
+  formData.value = { title: '', description: '', status: 'open', priority: 'medium' }
   errors.value = {}
   emit('update:open', false)
 }
@@ -151,42 +136,25 @@ const handleSubmit = async () => {
   errors.value = {}
 
   try {
-    // Validate form data
     const validatedData = ticketSchema.parse(formData.value)
-
     await createTicket(validatedData.title, validatedData.description, validatedData.priority)
 
-    toast({
-      title: 'Success',
-      description: 'Ticket created successfully',
-    })
+    showToast('Ticket created successfully 🎉')
 
-    // Reset form and close modal
-    formData.value = {
-      title: '',
-      description: '',
-      status: 'open',
-      priority: 'medium',
-    }
-
+    formData.value = { title: '', description: '', status: 'open', priority: 'medium' }
     props.onTicketCreated()
     emit('update:open', false)
-  } catch (error) {
-    if (error.errors) {
-      // Zod validation errors
-      const newErrors = {}
-      error.errors.forEach((err) => {
-        const field = err.path[0]
-        newErrors[field] = err.message
+  } catch (error: any) {
+    if (error?.errors) {
+      const newErrors: Record<string, string> = {}
+      error.errors.forEach((err: any) => {
+        newErrors[err.path?.[0] ?? ''] = err.message
       })
       errors.value = newErrors
+    } else if (error?.message) {
+      showToast(`Error: ${error.message}`)
     } else {
-      // Other errors (API errors, etc.)
-      toast({
-        title: 'Error',
-        description: 'Failed to create ticket. Please try again.',
-        variant: 'destructive',
-      })
+      showToast('Failed to create ticket. Please try again.')
     }
   } finally {
     isLoading.value = false

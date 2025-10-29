@@ -14,7 +14,6 @@
       </div>
     </header>
 
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-6 py-12">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -23,7 +22,6 @@
         </div>
         <Button @click="showCreateDialog = true">Create Ticket</Button>
       </div>
-      <!-- Filter Section -->
       <div class="mb-8 flex gap-4">
         <div class="flex gap-2">
           <Button
@@ -38,18 +36,15 @@
         </div>
       </div>
 
-      <!-- Tickets List -->
       <TicketList :tickets="filteredTickets" @edit="editTicket" @delete="refreshTickets" />
     </main>
 
-    <!-- Create Ticket Dialog -->
     <CreateTicketDialog
       :open="showCreateDialog"
       @update:open="showCreateDialog = $event"
       @ticket-created="handleTicketCreated"
     />
 
-    <!-- Edit Ticket Dialog -->
     <EditTicketDialog
       :ticket="editingTicket"
       :open="showEditDialog"

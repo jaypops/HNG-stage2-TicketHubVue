@@ -7,6 +7,7 @@
       <h2 class="text-xl font-bold text-foreground mb-4">Edit Ticket</h2>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
+        <!-- Title -->
         <div>
           <label for="title" class="block text-sm font-medium text-foreground mb-2">
             Title
@@ -22,6 +23,7 @@
           <p v-if="errors.title" class="text-sm text-destructive mt-1">{{ errors.title }}</p>
         </div>
 
+        <!-- Description -->
         <div>
           <label for="description" class="block text-sm font-medium text-foreground mb-2">
             Description
@@ -37,9 +39,12 @@
             }`"
             rows="4"
           />
-          <p v-if="errors.description" class="text-sm text-destructive mt-1">{{ errors.description }}</p>
+          <p v-if="errors.description" class="text-sm text-destructive mt-1">
+            {{ errors.description }}
+          </p>
         </div>
 
+        <!-- Status & Priority -->
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label for="status" class="block text-sm font-medium text-foreground mb-2">
@@ -47,7 +52,6 @@
             </label>
             <select
               id="status"
-              name="status"
               v-model="formData.status"
               :disabled="isLoading"
               class="w-full px-3 py-2 border border-input rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -64,7 +68,6 @@
             </label>
             <select
               id="priority"
-              name="priority"
               v-model="formData.priority"
               :disabled="isLoading"
               class="w-full px-3 py-2 border border-input rounded-md bg-input text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
@@ -80,7 +83,7 @@
           <Button
             type="button"
             variant="outline"
-            @click="$emit('update:open', false)"
+            @click="emit('update:open', false)"
             :disabled="isLoading"
             class="flex-1"
           >
@@ -95,35 +98,35 @@
   </div>
 </template>
 
-<script setup>
-import { ref, watch, watchEffect } from 'vue'
+<script setup lang="ts">
+import { ref, watchEffect } from 'vue'
 import { updateTicket } from '../lib/tickets'
 import { ticketSchema } from '../lib/validation'
 import { useToast } from './useToast'
 import Button from './Button.vue'
 import Input from './Input.vue'
 
-const { toast } = useToast()
+const { showToast } = useToast()
 
 const props = defineProps({
   ticket: {
     type: Object,
-    required: true
+    required: true,
   },
   open: {
     type: Boolean,
-    required: true
+    required: true,
   },
   onTicketUpdated: {
     type: Function,
-    required: true
-  }
+    required: true,
+  },
 })
 
 const emit = defineEmits(['update:open'])
 
 const isLoading = ref(false)
-const errors = ref({})
+const errors = ref<Record<string, string>>({})
 const formData = ref({
   title: '',
   description: '',
@@ -131,7 +134,6 @@ const formData = ref({
   priority: 'medium',
 })
 
-// Sync form data when ticket changes
 watchEffect(() => {
   if (props.ticket) {
     formData.value = {
@@ -143,44 +145,30 @@ watchEffect(() => {
   }
 })
 
-const handleChange = (field, value) => {
-  formData.value[field] = value
-  if (errors.value[field]) {
-    errors.value[field] = ''
-  }
-}
-
 const handleSubmit = async () => {
   isLoading.value = true
   errors.value = {}
 
   try {
     const validatedData = ticketSchema.parse(formData.value)
-    updateTicket(props.ticket.id, validatedData)
+    await updateTicket(props.ticket.id, validatedData)
 
-    toast({
-      title: 'Success',
-      description: 'Ticket updated successfully',
-    })
+    showToast('Ticket updated successfully 🎉')
 
     props.onTicketUpdated()
     emit('update:open', false)
-  } catch (error) {
+  } catch (error: any) {
     if (error.errors) {
-      const newErrors = {}
-      error.errors.forEach((err) => {
+      const newErrors: Record<string, string> = {}
+      error.errors.forEach((err: any) => {
         newErrors[err.path[0]] = err.message
       })
       errors.value = newErrors
+    } else {
+      showToast('Failed to update ticket. Please try again.')
     }
   } finally {
     isLoading.value = false
   }
 }
-
-// Watch for formData changes and update individual fields
-watch(() => formData.value.title, (newVal) => handleChange('title', newVal))
-watch(() => formData.value.description, (newVal) => handleChange('description', newVal))
-watch(() => formData.value.status, (newVal) => handleChange('status', newVal))
-watch(() => formData.value.priority, (newVal) => handleChange('priority', newVal))
 </script>

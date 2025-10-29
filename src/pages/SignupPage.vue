@@ -9,6 +9,7 @@
       </div>
 
       <form @submit.prevent="handleSubmit" class="space-y-4">
+        <!-- Name -->
         <div>
           <label for="name" class="block text-sm font-medium text-foreground mb-2">
             Full Name
@@ -25,6 +26,7 @@
           <p v-if="errors.name" class="text-sm text-destructive mt-1">{{ errors.name }}</p>
         </div>
 
+        <!-- Email -->
         <div>
           <label for="email" class="block text-sm font-medium text-foreground mb-2"> Email </label>
           <Input
@@ -39,6 +41,7 @@
           <p v-if="errors.email" class="text-sm text-destructive mt-1">{{ errors.email }}</p>
         </div>
 
+        <!-- Password -->
         <div>
           <label for="password" class="block text-sm font-medium text-foreground mb-2">
             Password
@@ -55,6 +58,7 @@
           <p v-if="errors.password" class="text-sm text-destructive mt-1">{{ errors.password }}</p>
         </div>
 
+        <!-- Confirm Password -->
         <div>
           <label for="confirmPassword" class="block text-sm font-medium text-foreground mb-2">
             Confirm Password
@@ -73,6 +77,7 @@
           </p>
         </div>
 
+        <!-- Submit -->
         <button
           type="submit"
           class="w-full bg-black text-white py-2 rounded-md font-medium hover:bg-black/90 disabled:opacity-50 disabled:pointer-events-none transition-all"
@@ -99,10 +104,10 @@ import Card from '../composables/Card.vue'
 import Input from '../composables/Input.vue'
 import { signupSchema, type SignupInput } from '../lib/validation'
 import { setUser } from '../lib/auth'
-import { useToast } from '../composables/useToast.ts'
+import { useToast } from '../composables/useToast'
 
 const router = useRouter()
-const { toast } = useToast()
+const { showToast } = useToast()
 const isLoading = ref(false)
 const errors = reactive<Record<string, string>>({})
 
@@ -121,11 +126,9 @@ const clearError = (field: string) => {
 
 const handleSubmit = async () => {
   isLoading.value = true
-
   Object.keys(errors).forEach((key) => delete errors[key])
 
   try {
-    console.log('Validating data...')
     const validatedData = signupSchema.parse(formData)
 
     await new Promise((resolve) => setTimeout(resolve, 500))
@@ -138,27 +141,15 @@ const handleSubmit = async () => {
     }
 
     setUser(user)
-
-    toast({
-      title: 'Success',
-      description: 'Account created successfully',
-    })
-
+    showToast('Account created successfully 🎉', 'success')
     router.push('/dashboard')
-  } catch (error) {
-    if (error instanceof Error) {
-      const zodError = error as any
-      if (zodError.errors) {
-        console.log('Zod validation errors:', zodError.errors)
-        zodError.errors.forEach((err: any) => {
-          errors[err.path[0]] = err.message
-        })
-      } else {
-        toast({
-          title: 'Error',
-          description: error.message,
-        })
-      }
+  } catch (error: any) {
+    if (error.errors) {
+      error.errors.forEach((err: any) => {
+        errors[err.path[0]] = err.message
+      })
+    } else {
+      showToast(error.message || 'Something went wrong', 'error')
     }
   } finally {
     isLoading.value = false

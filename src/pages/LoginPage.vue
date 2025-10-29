@@ -59,10 +59,12 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { login } from '../lib/auth'
 import { getEmailError, getPasswordError } from '../lib/validation'
+import { useToast } from '../composables/useToast'
 import Card from '../composables/Card.vue'
 import Input from '../composables/Input.vue'
 
 const router = useRouter()
+const { showToast } = useToast()
 
 const email = ref('')
 const password = ref('')
@@ -93,12 +95,12 @@ const handleLogin = () => {
   isLoading.value = true
   try {
     login(email.value, password.value)
+    showToast('Login successful! 🎉', 'success')
     router.push('/dashboard')
   } catch (error: any) {
-    errors.value.email = error.message
+    showToast(error.message || 'Invalid email or password', 'error')
   } finally {
     isLoading.value = false
   }
 }
 </script>
-
