@@ -3,7 +3,7 @@
     class="min-h-screen bg-gradient-to-b from-blue-50 to-white flex items-center justify-center px-6"
   >
     <Card class="w-full max-w-md">
-      <div class="mb-8">
+      <div class="mb-8 text-center">
         <h1 class="text-3xl font-bold text-foreground mb-2">Create Account</h1>
         <p class="text-muted-foreground">Join us and start managing your tickets</p>
       </div>
@@ -120,7 +120,6 @@ const clearError = (field: string) => {
 }
 
 const handleSubmit = async () => {
-  console.log('Form submitted ✅')
   isLoading.value = true
 
   Object.keys(errors).forEach((key) => delete errors[key])
@@ -128,18 +127,16 @@ const handleSubmit = async () => {
   try {
     console.log('Validating data...')
     const validatedData = signupSchema.parse(formData)
-    console.log('Validation passed ✅', validatedData)
 
     await new Promise((resolve) => setTimeout(resolve, 500))
-    console.log('API simulation complete ✅')
 
     const user = {
       id: Math.random().toString(36).substring(2),
       email: validatedData.email,
       name: validatedData.name,
+      password: validatedData.password,
     }
 
-    console.log('User signed up:', user)
     setUser(user)
 
     toast({
@@ -167,7 +164,6 @@ const handleSubmit = async () => {
     isLoading.value = false
   }
 }
-
 </script>
 
 <style scoped></style>

@@ -84,7 +84,7 @@ const validatePasswordField = () => {
   errors.value.password = getPasswordError(password.value)
 }
 
-const handleLogin = async () => {
+const handleLogin = () => {
   validateEmailField()
   validatePasswordField()
 
@@ -92,12 +92,13 @@ const handleLogin = async () => {
 
   isLoading.value = true
   try {
-    await login(email.value, password.value)
+    login(email.value, password.value)
     router.push('/dashboard')
-  } catch (error) {
-    console.error('Login failed:', error)
+  } catch (error: any) {
+    errors.value.email = error.message
   } finally {
     isLoading.value = false
   }
 }
 </script>
+
